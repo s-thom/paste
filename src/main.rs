@@ -1,7 +1,5 @@
+use std::fs;
 use warp::Filter;
-extern crate dotenv;
-extern crate env_logger;
-extern crate log;
 
 #[tokio::main]
 async fn main() {
@@ -9,8 +7,13 @@ async fn main() {
     env_logger::init();
 
     log::info!("Hello, world!");
-    // GET /hello/warp => 200 OK with body "Hello, warp!"
-    let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name));
+
+    let hello = warp::path!(String).map(|name| {
+        let contents = fs::read_to_string(format!("{}.txt", name))
+            .expect("Something went wrong reading the file");
+
+        return contents;
+    });
 
     warp::serve(hello).run(([127, 0, 0, 1], 3030)).await;
 }
