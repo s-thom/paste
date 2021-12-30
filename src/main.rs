@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::net::IpAddr;
+use tokio::signal;
 use warp::Filter;
 
 static PKG_VERSION: &str = std::env!("CARGO_PKG_VERSION");
@@ -45,10 +46,19 @@ async fn main() {
         .or(routes::pastes_route(config.paste_dir))
         .with(routes::headers_wrapper());
 
-    warp::serve(routes)
-        .run((
+    let (addr, server) = warp::serve(routes).bind_with_graceful_shutdown(
+        (
             config.server_host.parse::<IpAddr>().unwrap(),
             config.server_port,
-        ))
-        .await;
+        ),
+        async {
+            signal::ctrl_c()
+                .await
+                .expect("Failed to listen for `ctrl+c`");
+            log::error!("Got shutdown signal");
+        },
+    );
+
+    log::info!("Starting server on `{}`", addr);
+    server.await;
 }
