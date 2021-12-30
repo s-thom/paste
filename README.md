@@ -9,7 +9,7 @@ My goals with this project are as follows:
 
 ## Features / TODO List
 
-- [ ] Read files from directory
+- [x] Read files from directory
 - [ ] Write files to directory
-- [ ] Configuration for directory (env variable)
+- [x] Configuration for directory (env variable)
 - [ ] Simple bearer token authentication for creating new pastes
