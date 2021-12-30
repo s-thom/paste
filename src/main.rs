@@ -6,12 +6,18 @@ mod routes;
 
 #[derive(Deserialize)]
 struct Config {
+    #[serde(default = "default_version")]
+    cargo_pkg_version: String,
     #[serde(default = "default_paste_dir")]
     paste_dir: String,
     #[serde(default = "default_server_host")]
     server_host: String,
     #[serde(default = "default_server_port")]
     server_port: u16,
+}
+
+fn default_version() -> String {
+    String::from("unknown")
 }
 
 fn default_paste_dir() -> String {
@@ -36,9 +42,12 @@ async fn main() {
         Err(error) => panic!("{:#?}", error),
     };
 
+    log::info!("Version v{}", config.cargo_pkg_version);
     log::info!("Serving pastes from `{}`", config.paste_dir);
 
-    let routes = routes::index_route().or(routes::pastes_route(config.paste_dir));
+    let routes = routes::index_route(config.cargo_pkg_version)
+        .or(routes::pastes_route(config.paste_dir))
+        .with(routes::headers_wrapper());
 
     warp::serve(routes)
         .run((
