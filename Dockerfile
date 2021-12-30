@@ -22,7 +22,15 @@ RUN adduser \
 
 WORKDIR /app
 
-COPY ./ .
+COPY ./Cargo.* ./
+# Cache dependencies by writing a dummy main file and building it
+RUN mkdir -p src && \
+  sed -i 's#src/main.rs#dummy.rs#' Cargo.toml && \
+  echo "fn main() {}" > dummy.rs && \
+  cargo build --target x86_64-unknown-linux-musl --release && \
+  sed -i 's#dummy.rs#src/main.rs#' Cargo.toml
+
+COPY ./ ./
 
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
