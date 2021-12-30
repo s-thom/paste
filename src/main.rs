@@ -1,39 +1,49 @@
-use std::env;
-use warp::http::header::{HeaderMap, HeaderValue};
+use serde::Deserialize;
+use std::net::IpAddr;
 use warp::Filter;
+
+mod routes;
+
+#[derive(Deserialize)]
+struct Config {
+    #[serde(default = "default_paste_dir")]
+    paste_dir: String,
+    #[serde(default = "default_server_host")]
+    server_host: String,
+    #[serde(default = "default_server_port")]
+    server_port: u16,
+}
+
+fn default_paste_dir() -> String {
+    String::from("pastes")
+}
+
+fn default_server_host() -> String {
+    String::from("127.0.0.1")
+}
+
+fn default_server_port() -> u16 {
+    80
+}
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
     env_logger::init();
 
-    let base_dir: String = match env::var("PASTE_DIR") {
-        Ok(val) => val,
-        Err(_e) => {
-            log::trace!("PASTE_DIR variable was not set, defaulting to `pastes`");
-            String::from("pastes")
-        }
+    let config = match envy::from_env::<Config>() {
+        Ok(config) => config,
+        Err(error) => panic!("{:#?}", error),
     };
 
-    let mut pastes_headers = HeaderMap::new();
-    pastes_headers.insert("content-type", HeaderValue::from_static("text/plain"));
-    pastes_headers.insert(
-        "x-content-type-options",
-        HeaderValue::from_static("nosniff"),
-    );
+    log::info!("Serving pastes from `{}`", config.paste_dir);
 
-    // let path = Path::new(&base_dir);
+    let routes = routes::index_route().or(routes::pastes_route(config.paste_dir));
 
-    log::info!("Serving pastes from `{}`", base_dir);
-
-    let get_index_route = warp::path::end()
-        .and(warp::get())
-        .map(|| warp::reply::html("index route"));
-    let get_pastes_route = warp::get()
-        .and(warp::fs::dir(base_dir))
-        .with(warp::reply::with::headers(pastes_headers));
-
-    let routes = get_index_route.or(get_pastes_route);
-
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    warp::serve(routes)
+        .run((
+            config.server_host.parse::<IpAddr>().unwrap(),
+            config.server_port,
+        ))
+        .await;
 }
