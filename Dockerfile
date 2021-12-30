@@ -36,6 +36,9 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 
 FROM alpine:3.15 as release
 
+# Add Tini
+RUN apk add --no-cache tini=0.19.0-r0
+
 # Import from builder.
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
@@ -50,4 +53,9 @@ USER app:app
 
 EXPOSE 80
 
-CMD ["/app/paste"]
+ENV RUST_LOG=info
+ENV SERVER_HOST=0.0.0.0
+
+CMD ["/sbin/tini", "--"]
+
+ENTRYPOINT [ "/app/paste" ]
