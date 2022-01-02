@@ -3,8 +3,9 @@ use std::net::IpAddr;
 use tokio::signal;
 use warp::Filter;
 
-static PKG_VERSION: &str = std::env!("CARGO_PKG_VERSION");
+use crate::config::CONFIG;
 
+mod config;
 mod routes;
 
 #[derive(Deserialize)]
@@ -31,25 +32,18 @@ fn default_server_port() -> u16 {
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().ok();
-    env_logger::init();
+    log::info!("Version v{}", &CONFIG.pkg_version);
+    log::info!("Serving pastes from `{}`", &CONFIG.paste_dir);
 
-    let config = match envy::from_env::<Config>() {
-        Ok(config) => config,
-        Err(error) => panic!("{:#?}", error),
-    };
+    let routes = routes::index_route()
+        .or(routes::pastes_route())
 
-    log::info!("Version v{}", PKG_VERSION);
-    log::info!("Serving pastes from `{}`", config.paste_dir);
-
-    let routes = routes::index_route(PKG_VERSION.to_string())
-        .or(routes::pastes_route(config.paste_dir))
         .with(routes::headers_wrapper());
 
     let (addr, server) = warp::serve(routes).bind_with_graceful_shutdown(
         (
-            config.server_host.parse::<IpAddr>().unwrap(),
-            config.server_port,
+            CONFIG.server_host.parse::<IpAddr>().unwrap(),
+            CONFIG.server_port,
         ),
         async {
             signal::ctrl_c()

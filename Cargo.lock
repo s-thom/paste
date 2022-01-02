@@ -577,6 +577,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "envy",
+ "lazy_static",
  "log",
  "serde",
  "tokio",

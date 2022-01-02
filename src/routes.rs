@@ -1,5 +1,6 @@
 use warp::http::header::{HeaderMap, HeaderValue};
 use warp::{Filter, Rejection, Reply};
+use crate::config::CONFIG;
 
 pub fn headers_wrapper() -> warp::filters::reply::WithHeaders {
     let mut pastes_headers = HeaderMap::new();
@@ -12,10 +13,8 @@ pub fn headers_wrapper() -> warp::filters::reply::WithHeaders {
     warp::reply::with::headers(pastes_headers)
 }
 
-pub fn index_route(
-    version: String,
-) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    let version_string = version;
+pub fn index_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    let version_string = &CONFIG.pkg_version;
 
     warp::path!().and(warp::get()).map(move || {
         warp::reply::html(format!(
@@ -29,8 +28,8 @@ https://github.com/s-thom/paste
     })
 }
 
-pub fn pastes_route(
-    paste_dir: String,
-) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+pub fn pastes_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    let paste_dir = &CONFIG.paste_dir;
+
     warp::path!().and(warp::get()).and(warp::fs::dir(paste_dir))
 }
