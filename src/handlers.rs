@@ -1,6 +1,7 @@
 use futures_util::TryStreamExt;
 use mime::Mime;
 use mpart_async::server::MultipartStream;
+use nanoid::nanoid;
 use std::path::Path;
 use tokio::fs::{self, File};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -127,7 +128,7 @@ pub async fn create_handler(
         }
 
         // Figure out path for the new file
-        let new_id = ulid::Ulid::new().to_string();
+        let new_id = nanoid!(10, &nanoid::alphabet::SAFE);
         let new_file_path = Path::new(base_dir).join(&new_id);
 
         // Create the file
