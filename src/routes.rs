@@ -3,7 +3,7 @@ use mime::Mime;
 use mpart_async::server::MultipartStream;
 use std::path::Path;
 use tokio::fs::{self, File};
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_stream::{Stream, StreamExt};
 use warp::http::header::{HeaderMap, HeaderValue};
 use warp::hyper::Uri;
@@ -38,10 +38,36 @@ https://github.com/s-thom/paste
     })
 }
 
-pub fn pastes_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    let paste_dir = &CONFIG.paste_dir;
+async fn read_paste(filename: String) -> Result<impl warp::Reply, Rejection> {
+    // Create pastes directory if not already present
+    let base_dir = &CONFIG.paste_dir;
+    let create_dir_result = fs::create_dir_all(base_dir).await;
+    if let Err(err) = create_dir_result {
+        log::error!("Error when creating pastes directory: {}", err);
+        return Err(warp::reject());
+    }
 
-    warp::path!().and(warp::get()).and(warp::fs::dir(paste_dir))
+    let file_path = Path::new(base_dir).join(filename);
+    let open_file_result = File::open(file_path).await;
+    if let Err(err) = open_file_result {
+        log::error!("Error when opening file: {}", err);
+        return Err(warp::reject());
+    }
+
+    // Read file into buffer
+    let mut file = open_file_result.unwrap();
+    let mut contents = vec![];
+    let read_result = file.read_to_end(&mut contents).await;
+    if let Err(err) = read_result {
+        log::error!("Error when reading file: {}", err);
+        return Err(warp::reject());
+    }
+
+    Ok(contents)
+}
+
+pub fn pastes_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    warp::path!(String).and(warp::get()).and_then(read_paste)
 }
 
 async fn upload_multipart(
