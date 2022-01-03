@@ -5,6 +5,7 @@ use warp::Filter;
 use crate::config::CONFIG;
 
 mod config;
+mod errors;
 mod handlers;
 mod routes;
 
@@ -16,6 +17,7 @@ async fn main() {
     let routes = routes::index_route()
         .or(routes::pastes_route())
         .or(routes::create_route())
+        .recover(handlers::recover_handler)
         .with(routes::headers_wrapper());
 
     let (addr, server) = warp::serve(routes).bind_with_graceful_shutdown(
