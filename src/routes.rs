@@ -80,7 +80,7 @@ async fn upload_multipart(
         body.map_ok(|mut buf| buf.copy_to_bytes(buf.remaining())),
     );
 
-    while let Ok(Some(mut field)) = StreamExt::try_next(&mut stream).await {
+    if let Ok(Some(mut field)) = StreamExt::try_next(&mut stream).await {
         let field_name = field.name().unwrap();
         log::debug!("Field received: {}", field_name);
 
