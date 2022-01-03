@@ -1,6 +1,6 @@
 use mime::Mime;
 use warp::http::header::{
-    HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_SECURITY_POLICY, CONTENT_TYPE,
+    HeaderMap, HeaderValue, AUTHORIZATION, CACHE_CONTROL, CONTENT_SECURITY_POLICY, CONTENT_TYPE,
     X_CONTENT_TYPE_OPTIONS,
 };
 use warp::{Filter, Rejection, Reply};
@@ -14,6 +14,10 @@ pub fn headers_wrapper() -> warp::filters::reply::WithHeaders {
     pastes_headers.insert(
         CONTENT_SECURITY_POLICY,
         HeaderValue::from_static("default-src 'none'"),
+    );
+    pastes_headers.insert(
+        CACHE_CONTROL,
+        HeaderValue::from_static("public, max-age 86400"),
     );
 
     warp::reply::with::headers(pastes_headers)
