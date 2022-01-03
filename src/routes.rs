@@ -68,10 +68,10 @@ async fn upload_multipart(
 
         // Figure out path for the new file
         let new_id = ulid::Ulid::new().to_string();
-        let paste_path = Path::new(base_dir).join(&new_id);
+        let new_file_path = Path::new(base_dir).join(&new_id);
 
         // Create the file
-        let create_file_result = File::create(paste_path).await;
+        let create_file_result = File::create(&new_file_path).await;
         if let Err(err) = create_file_result {
             log::error!("Error when creating file: {}", err);
             return Err(warp::reject());
@@ -83,6 +83,16 @@ async fn upload_multipart(
             file.write_all(&bytes)
                 .await
                 .expect("Failed to write to file");
+        }
+
+        let flush_result = file.flush().await;
+        if let Err(err) = flush_result {
+            log::error!("Failed to flush file, removing if possible: {}", err);
+            let rm_result = fs::remove_file(new_file_path).await;
+            if let Err(rm_err) = rm_result {
+                log::warn!("Failed to remove file, ignoring this error: {}", rm_err);
+            }
+            return Err(warp::reject());
         }
 
         return Ok(warp::redirect(
