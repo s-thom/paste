@@ -31,6 +31,7 @@ pub fn pastes_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + 
 pub fn create_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!()
         .and(warp::post())
+        .and(warp::body::content_length_limit(1024 * 1024 * 64))
         .and(warp::header::<String>(AUTHORIZATION.as_str()))
         .and(warp::header::<Mime>("content-type"))
         .and(warp::body::stream())
