@@ -11,6 +11,8 @@ use warp::{Buf, Rejection};
 use crate::config::CONFIG;
 use crate::errors::{PasteError, PasteErrorKind};
 
+static BEARER_PREFIX: &str = "Bearer: ";
+
 pub async fn index_handler() -> Result<impl warp::Reply, Rejection> {
     let version_string = &CONFIG.pkg_version;
 
@@ -63,10 +65,38 @@ pub async fn pastes_handler(filename: String) -> Result<impl warp::Reply, Reject
     Ok(contents)
 }
 
+fn check_bearer_token(auth_header: String) -> Result<(), PasteError> {
+    let secret = &CONFIG.paste_bearer_token;
+
+    if !auth_header.starts_with(BEARER_PREFIX) {
+        return Err(PasteError::new(
+            PasteErrorKind::InvalidAuthorization,
+            "Authorization header did not contain a bearer token",
+        ));
+    }
+
+    let raw_token = auth_header.trim_start_matches(BEARER_PREFIX).to_owned();
+    if secret.eq(&raw_token) {
+        return Ok(());
+    } else {
+        return Err(PasteError::new(
+            PasteErrorKind::InvalidAuthorization,
+            "Authorization header contained an invalid bearer token",
+        ));
+    }
+}
+
 pub async fn create_handler(
+    auth_header: String,
     mime: Mime,
     body: impl Stream<Item = Result<impl Buf, warp::Error>> + Unpin,
 ) -> Result<impl warp::Reply, Rejection> {
+    let auth_result = check_bearer_token(auth_header);
+    if let Err(err) = auth_result {
+        log::error!("Error when creating pastes directory: {}", err);
+        return Err(warp::reject::custom(err));
+    }
+
     let boundary_option = mime.get_param("boundary").map(|v| v.to_string());
     if boundary_option == None {
         log::error!("Error getting multipart boundary");
@@ -156,6 +186,8 @@ pub async fn recover_handler(err: Rejection) -> Result<impl warp::Reply, std::co
         code = StatusCode::NOT_FOUND;
         message = "not found";
     } else if let Some(e) = err.find::<PasteError>() {
+        log::error!("Matching a PasteError: {}", e);
+
         let tuple = match e.error_kind {
             PasteErrorKind::FileNotFound => (StatusCode::NOT_FOUND, "not found"),
             PasteErrorKind::InvalidRequest => (
@@ -165,6 +197,7 @@ pub async fn recover_handler(err: Rejection) -> Result<impl warp::Reply, std::co
             PasteErrorKind::FileRead | PasteErrorKind::FileWrite => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "unknown error")
             }
+            PasteErrorKind::InvalidAuthorization => (StatusCode::UNAUTHORIZED, "unauthorized"),
         };
         code = tuple.0;
         message = tuple.1;

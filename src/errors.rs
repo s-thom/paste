@@ -6,6 +6,7 @@ pub enum PasteErrorKind {
     FileRead,
     FileWrite,
     InvalidRequest,
+    InvalidAuthorization,
 }
 
 #[derive(Debug)]

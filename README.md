@@ -14,7 +14,7 @@ There is no form for creating a paste. Either use `curl` directly, or configure 
 Uploading is done via a `multipart/form-data` POST request to a path of `/`. The first part of the request will be used as the text content.
 
 ```sh
-cat my-cool-file.txt > curl -F file=@- http://localhost:80
+cat my-cool-file.txt > curl -H "Authorization: Bearer <your-secret-token>" -F file=@- http://localhost:80
 ```
 
 ## Running it yourself
@@ -33,11 +33,12 @@ docker pull ghcr.io/s-thom/paste
 
 Configuration is done through environment variables. Use of a `.env` file is supported for convenience.
 
-| Variable Name | Description                   | Default     |
-| ------------- | ----------------------------- | ----------- |
-| PASTE_DIR     | Directory to store pastes     | `pastes`    |
-| SERVER_HOST   | Host for the app to listen on | `127.0.0.1` |
-| SERVER_PORT   | Port for the app to listen on | `80`        |
+| Variable Name      | Description                                         | Default     |
+| ------------------ | --------------------------------------------------- | ----------- |
+| PASTE_DIR          | Directory to store pastes                           | `pastes`    |
+| PASTE_BEARER_TOKEN | A secret that must be provided to create new pastes |             |
+| SERVER_HOST        | Host for the app to listen on                       | `127.0.0.1` |
+| SERVER_PORT        | Port for the app to listen on                       | `80`        |
 
 ## Features / TODO List
 

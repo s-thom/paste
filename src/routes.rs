@@ -1,5 +1,5 @@
 use mime::Mime;
-use warp::http::header::{HeaderMap, HeaderValue};
+use warp::http::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use warp::{Filter, Rejection, Reply};
 
 use crate::handlers;
@@ -31,6 +31,7 @@ pub fn pastes_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + 
 pub fn create_route() -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!()
         .and(warp::post())
+        .and(warp::header::<String>(AUTHORIZATION.as_str()))
         .and(warp::header::<Mime>("content-type"))
         .and(warp::body::stream())
         .and_then(handlers::create_handler)

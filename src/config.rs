@@ -17,6 +17,8 @@ pub struct Config {
     pub server_host: String,
     #[serde(default = "default_server_port")]
     pub server_port: u16,
+    #[serde()]
+    pub paste_bearer_token: String,
 }
 
 fn default_pkg_version() -> String {
