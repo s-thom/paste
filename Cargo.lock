@@ -628,6 +628,8 @@ dependencies = [
  "mpart-async",
  "serde",
  "tokio",
+ "tokio-stream",
+ "tokio-util",
  "ulid",
  "warp",
 ]
