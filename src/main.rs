@@ -5,6 +5,7 @@ use warp::Filter;
 use crate::config::CONFIG;
 
 mod config;
+mod handlers;
 mod routes;
 
 #[tokio::main]
