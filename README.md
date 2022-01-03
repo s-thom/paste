@@ -43,6 +43,6 @@ Configuration is done through environment variables. Use of a `.env` file is sup
 ## Features / TODO List
 
 - [x] Read files from directory
-- [ ] Write files to directory
+- [x] Write files to directory
 - [x] Configuration for directory (env variable)
-- [ ] Simple bearer token authentication for creating new pastes
+- [x] Simple bearer token authentication for creating new pastes
