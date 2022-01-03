@@ -22,11 +22,16 @@ cat my-cool-file.txt | curl -H "Authorization: Bearer <your-secret-token>" -F fi
 Either build and run it yourself, or use the provided [Docker images](https://github.com/s-thom/paste/pkgs/container/paste).
 
 ```sh
+# Before running, add environment variables to `.env`
 cargo run
 
 # OR
 
-docker pull ghcr.io/s-thom/paste
+docker run \
+  -e PASTE_BEARER_TOKEN=<your-secret-token> \
+  -p <port-on-host>:80 \
+  -v <path-on-host>:/app/pastes \
+  ghcr.io/s-thom/paste
 ```
 
 ### Configuration
