@@ -13,6 +13,11 @@ use crate::config::CONFIG;
 use crate::errors::{PasteError, PasteErrorKind};
 
 static BEARER_PREFIX: &str = "Bearer: ";
+// https://en.wikipedia.org/wiki/Base32#Crockford.27s_Base32
+static ID_ALPHABET: &[char] = &[
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J',
+    'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z',
+];
 
 pub async fn index_handler() -> Result<impl warp::Reply, Rejection> {
     let version_string = &CONFIG.pkg_version;
@@ -128,7 +133,7 @@ pub async fn create_handler(
         }
 
         // Figure out path for the new file
-        let new_id = nanoid!(10, &nanoid::alphabet::SAFE);
+        let new_id = nanoid!(10, ID_ALPHABET);
         let new_file_path = Path::new(base_dir).join(&new_id);
 
         // Create the file
