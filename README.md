@@ -14,7 +14,7 @@ There is no form for creating a paste. Either use `curl` directly, or configure 
 Uploading is done via a `multipart/form-data` POST request to a path of `/`. The first part of the request will be used as the text content.
 
 ```sh
-cat my-cool-file.txt > curl -H "Authorization: Bearer <your-secret-token>" -F file=@- http://localhost:80
+cat my-cool-file.txt | curl -H "Authorization: Bearer <your-secret-token>" -F file=@- http://localhost:80
 ```
 
 ## Running it yourself
