@@ -77,12 +77,12 @@ fn check_bearer_token(auth_header: String) -> Result<(), PasteError> {
 
     let raw_token = auth_header.trim_start_matches(BEARER_PREFIX).to_owned();
     if secret.eq(&raw_token) {
-        return Ok(());
+        Ok(())
     } else {
-        return Err(PasteError::new(
+        Err(PasteError::new(
             PasteErrorKind::InvalidAuthorization,
             "Authorization header contained an invalid bearer token",
-        ));
+        ))
     }
 }
 
@@ -205,28 +205,24 @@ pub async fn recover_handler(err: Rejection) -> Result<impl warp::Reply, std::co
         // The following are error types from warp itself.
         // I did not see an easy way to pass these on to the default hander (as this function is infallible),
         // so enjoy this stack of if/elses instead.
-    } else if let Some(_) = err.find::<warp::filters::body::BodyDeserializeError>() {
+    } else if err
+        .find::<warp::filters::body::BodyDeserializeError>()
+        .is_some()
+        || err.find::<warp::reject::InvalidHeader>().is_some()
+        || err.find::<warp::reject::InvalidQuery>().is_some()
+        || err.find::<warp::reject::LengthRequired>().is_some()
+    {
         code = StatusCode::BAD_REQUEST;
         message = "bad request"
-    } else if let Some(_) = err.find::<warp::reject::InvalidHeader>() {
-        code = StatusCode::BAD_REQUEST;
-        message = "bad request"
-    } else if let Some(_) = err.find::<warp::reject::InvalidQuery>() {
-        code = StatusCode::BAD_REQUEST;
-        message = "bad request"
-    } else if let Some(_) = err.find::<warp::reject::LengthRequired>() {
-        code = StatusCode::BAD_REQUEST;
-        message = "bad request"
-    } else if let Some(_) = err.find::<warp::reject::MissingCookie>() {
+    } else if err.find::<warp::reject::MissingCookie>().is_some()
+        || err.find::<warp::reject::MissingHeader>().is_some()
+    {
         code = StatusCode::UNAUTHORIZED;
         message = "unauthorized"
-    } else if let Some(_) = err.find::<warp::reject::MissingHeader>() {
-        code = StatusCode::UNAUTHORIZED;
-        message = "unauthorized"
-    } else if let Some(_) = err.find::<warp::reject::UnsupportedMediaType>() {
+    } else if err.find::<warp::reject::UnsupportedMediaType>().is_some() {
         code = StatusCode::BAD_REQUEST;
         message = "bad request"
-    } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
+    } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
         code = StatusCode::METHOD_NOT_ALLOWED;
         message = "method not allowed";
     } else {
