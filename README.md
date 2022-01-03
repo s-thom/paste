@@ -7,7 +7,29 @@ My goals with this project are as follows:
 1. Learn rust by getting it wrong the first time on a low-stakes project
 2. Keep the feature set small.
 
-## Configuration
+## Creating new pastes
+
+There is no form for creating a paste. Either use `curl` directly, or configure a program like [ShareX](https://getsharex.com/) on Windows.
+
+Uploading is done via a `multipart/form-data` POST request to a path of `/`. The first part of the request will be used as the text content.
+
+```sh
+cat my-cool-file.txt > curl -F file=@- http://localhost:80
+```
+
+## Running it yourself
+
+Either build and run it yourself, or use the provided [Docker images](https://github.com/s-thom/paste/pkgs/container/paste).
+
+```sh
+cargo run
+
+# OR
+
+docker pull ghcr.io/s-thom/paste
+```
+
+### Configuration
 
 Configuration is done through environment variables. Use of a `.env` file is supported for convenience.
 
