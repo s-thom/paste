@@ -12,7 +12,7 @@ use warp::{Buf, Rejection};
 use crate::config::CONFIG;
 use crate::errors::{PasteError, PasteErrorKind};
 
-static BEARER_PREFIX: &str = "Bearer: ";
+static BEARER_PREFIX: &str = "Bearer ";
 // https://en.wikipedia.org/wiki/Base32#Crockford.27s_Base32
 static ID_ALPHABET: &[char] = &[
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J',
