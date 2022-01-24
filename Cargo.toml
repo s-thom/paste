@@ -21,7 +21,7 @@ futures-util = "0.3.19"
 lazy_static = "1.4.0"
 tokio-stream = "0.1.8"
 tokio-util = "0.6.9"
-serde = { version = "1.0.133", features = ["derive"] }
+serde = { version = "1.0.135", features = ["derive"] }
 nanoid = "0.4.0"
 tokio = { version = "1", features = ["full"] }
 warp = "0.3"
