@@ -9,14 +9,20 @@ RUN apt-get update && \
 # Create user for app
 ENV USER=app
 ENV UID=10001
+ENV GROUP=app
+ENV GID=10001
 
-RUN adduser \
+RUN groupadd \
+  -g "${GID}" \
+  ${GROUP} && \
+  adduser \
   --disabled-password \
   --gecos "" \
   --home "/nonexistent" \
   --shell "/sbin/nologin" \
   --no-create-home \
   --uid "${UID}" \
+  --gid "${GID}" \
   "${USER}"
 
 
@@ -28,7 +34,8 @@ RUN mkdir -p src && \
   sed -i 's#src/main.rs#dummy.rs#' Cargo.toml && \
   echo "fn main() {}" > dummy.rs && \
   cargo build --target x86_64-unknown-linux-musl --release && \
-  sed -i 's#dummy.rs#src/main.rs#' Cargo.toml
+  sed -i 's#dummy.rs#src/main.rs#' Cargo.toml && \
+  rm dummy.rs
 
 COPY ./ ./
 
@@ -48,8 +55,7 @@ WORKDIR /app
 # Copy our build
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/paste ./
 
-# Use an unprivileged user.
-USER app:app
+USER ${USER}:${GROUP}
 
 EXPOSE 80
 
