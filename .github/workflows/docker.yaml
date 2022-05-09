@@ -33,7 +33,7 @@ jobs:
 
       - name: Docker meta
         id: docker-meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/s-thom/paste
           tags: |
