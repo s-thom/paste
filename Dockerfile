@@ -1,4 +1,4 @@
-FROM rust:1.58.1 AS builder
+FROM rust:1.62.0 AS builder
 
 RUN rustup target add x86_64-unknown-linux-musl
 # hadolint ignore=DL3008
